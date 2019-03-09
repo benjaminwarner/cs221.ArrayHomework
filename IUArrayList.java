@@ -14,7 +14,6 @@ import java.util.NoSuchElementException;
  */
 public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	private static final int DEFAULT_CAPACITY = 100;
-	private static final int NOT_FOUND = -1;
 	
 	private T[] array;
 	private int rear;
