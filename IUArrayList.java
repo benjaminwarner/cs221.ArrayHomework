@@ -110,9 +110,9 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	public T removeFirst() {
 		T element = array[0];
 		shiftElementsBackwardsOneSpace(0);
+		--rear;
 		array[rear] = null;
 		++modCount;
-		--rear;
 		return element;
 	}
 
