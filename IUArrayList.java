@@ -36,24 +36,37 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 		modCount = 0;
 	}
 	
-	/** Double the capacity of array */
+	/** Double the capacity of array if it's full */
 	private void expandCapacityIfFull() {
 		if (rear == array.length)
 			array = Arrays.copyOf(array, array.length*2);
 	}
 	
-	/** Shift all elements in the array forward one space */
+	/** 
+	 * Shift all elements in the array forward one space, until reaching 
+	 * stoppingPoint
+	 * @param stoppingPoint
+	 */
 	private void shiftElementsForwardOneSpace(int stoppingPoint) {
 		for (int i = rear; i > stoppingPoint; --i)
 			array[i] = array[i-1];
 	}
 	
-	/** Shift all elements in the array backward one space */
+	/** 
+	 * Shift all elements in the array backward one space,
+	 * starting at startingPoint
+	 * @param startingPoint
+	 */
 	private void shiftElementsBackwardsOneSpace(int startingPoint) {
 		for (int i = startingPoint; i < rear - 1; ++i)
 			array[i] = array[i+1];
 	}
 	
+	/**
+	 * Validate that the given index is within the appropriate 
+	 * range (non negative and not greater than size)
+	 * @param index
+	 */
 	private void checkIndex(int index) {
 		if (index >= rear || index < 0)
 			throw new IndexOutOfBoundsException();
@@ -85,6 +98,7 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 
 	@Override
 	public void add(int index, T element) {
+		checkIndex(index);
 		expandCapacityIfFull();
 		shiftElementsForwardOneSpace(index);
 		array[index] = element;
