@@ -1,6 +1,7 @@
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
 
 /**
@@ -8,7 +9,7 @@ import java.util.NoSuchElementException;
  * An Iterator with working remove() method is implemented, but
  * ListIterator is unsupported. 
  * 
- * @author 
+ * @author Benjamin Warner
  *
  * @param <T> type to store
  */
@@ -60,11 +61,7 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 
 	@Override
 	public void addToFront(T element) {
-		expandCapacityIfFull();
-		shiftElementsForwardOneSpace(0);
-		array[0] = element;
-		++modCount;
-		++rear;
+		add(0, element);
 	}
 
 	@Override
@@ -83,11 +80,7 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	@Override
 	public void addAfter(T element, T target) {
 		int index = indexOf(target);
-		expandCapacityIfFull();
-		shiftElementsForwardOneSpace(index+1);
-		array[index+1] = element;
-		++modCount;
-		++rear;
+		add(index+1, element);
 	}
 
 	@Override
@@ -102,7 +95,7 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	@Override
 	public T removeFirst() {
 		T element = array[0];
-		shiftElementsBackwardOneSpace(0);
+		shiftElementsBackwardsOneSpace(0);
 		array[rear] = null;
 		++modCount;
 		--rear;
@@ -157,6 +150,7 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 		for (int i = 0; i < rear; ++i) {
 			if (element.equals(array[i]))
 				return i;
+		}
 		throw new NoSuchElementException();
 	}
 
@@ -217,20 +211,22 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 
 		@Override
 		public boolean hasNext() {
-			// TODO 
-			return false;
+			if (iterModCount != modCount)
+				throw new ConcurrentModificationException();
+			return nextIndex < rear;
 		}
 
 		@Override
 		public T next() {
-			// TODO 
-			return null;
+			if (!hasNext())
+				throw new NoSuchElementException();
+			++nextIndex;
+			return array[nextIndex-1];
 		}
 		
 		@Override
 		public void remove() {
-			// TODO
-			
+			throw new UnsupportedOperationException();
 		}
 	}
 }
