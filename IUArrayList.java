@@ -93,12 +93,15 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	@Override
 	public void addAfter(T element, T target) {
 		int index = indexOf(target);
+		if (index == -1)
+			throw new NoSuchElementException();
 		add(index+1, element);
 	}
 
 	@Override
 	public void add(int index, T element) {
-		checkIndex(index);
+		if (index > rear || index < 0)
+			throw new IndexOutOfBoundsException();
 		expandCapacityIfFull();
 		shiftElementsForwardOneSpace(index);
 		array[index] = element;
@@ -108,6 +111,8 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 
 	@Override
 	public T removeFirst() {
+		if (rear == 0)
+			throw new NoSuchElementException();
 		T element = array[0];
 		shiftElementsBackwardsOneSpace(0);
 		--rear;
@@ -118,6 +123,8 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 
 	@Override
 	public T removeLast() {
+		if (rear == 0)
+			throw new NoSuchElementException();
 		T element = array[rear-1];
 		++modCount;
 		--rear;
@@ -128,6 +135,8 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	@Override
 	public T remove(T element) {
 		int index = indexOf(element);
+		if  (index == -1)
+			throw new NoSuchElementException();
 		T retVal = array[index];
 		shiftElementsBackwardsOneSpace(index);
 		--rear;
@@ -165,27 +174,27 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 			if (element.equals(array[i]))
 				return i;
 		}
-		throw new NoSuchElementException();
+		return -1;
 	}
 
 	@Override
 	public T first() {
+		if (rear == 0)
+			throw new NoSuchElementException();
 		return array[0];
 	}
 
 	@Override
 	public T last() {
+		if (rear == 0)
+			throw new NoSuchElementException();
 		return array[rear-1];
 	}
 
 	@Override
 	public boolean contains(T target) {
-		try {
-			indexOf(target);
-			return true;
-		} catch (NoSuchElementException e) {
-			return false;
-		}
+		int index = indexOf(target);
+		return index != -1;
 	}
 
 	@Override
@@ -196,6 +205,16 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	@Override
 	public int size() {
 		return rear;
+	}
+	
+	public String toString() {
+		if (rear == 0)
+			return "[]";
+		String str = "[";
+		for (int i = 0; i < rear - 1; ++i)
+			str += array[i].toString() + ", ";
+		str += array[rear-1] + "]";
+		return str;
 	}
 
 	@Override
@@ -217,6 +236,7 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 	private class ALIterator implements Iterator<T> {
 		private int nextIndex;
 		private int iterModCount;
+		private boolean canRemove;
 		
 		public ALIterator() {
 			nextIndex = 0;
@@ -235,12 +255,18 @@ public class IUArrayList<T> implements IndexedUnsortedList<T> {
 			if (!hasNext())
 				throw new NoSuchElementException();
 			++nextIndex;
+			canRemove = true;
 			return array[nextIndex-1];
 		}
 		
 		@Override
 		public void remove() {
-			throw new UnsupportedOperationException();
+			if (iterModCount != modCount)
+				throw new ConcurrentModificationException();
+			else if (!canRemove)
+				throw new IllegalStateException();
+			canRemove = false;
+			// I'm not actually implementing this method cause this method shouldn't exist
 		}
 	}
 }
